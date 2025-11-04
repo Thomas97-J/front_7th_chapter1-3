@@ -210,6 +210,7 @@ function AddEvent({
             <Select
               size="small"
               value={repeatType}
+              data-testid="repeat-type-select"
               aria-label="반복 유형"
               onChange={(e) => setRepeatType(e.target.value as RepeatType)}
             >
@@ -260,9 +261,14 @@ function AddEvent({
           size="small"
           value={notificationTime}
           onChange={(e) => setNotificationTime(Number(e.target.value))}
+          data-testid="notification-select"
         >
           {notificationOptions.map((option) => (
-            <MenuItem key={option.value} value={option.value}>
+            <MenuItem
+              key={option.value}
+              value={option.value}
+              data-testid={`notification-option-${option.value}`}
+            >
               {option.label}
             </MenuItem>
           ))}
