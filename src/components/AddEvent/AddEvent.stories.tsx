@@ -1,9 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
 import React, { useState } from 'react';
 
-import AddEvent from './index';
 import type { Event, RepeatType } from '../../types';
 import { getTimeErrorMessage } from '../../utils/timeValidation';
+
+import AddEvent from './index';
 
 const meta = {
   title: 'AddEvent/AddEvent',
@@ -16,7 +17,15 @@ export default meta;
 
 type Story = StoryObj<typeof meta>;
 
-function useAddEventState(initial?: Partial<Event>) {
+function useAddEventState(
+  initial?: Partial<Event>,
+  repeatInitial?: {
+    isRepeating?: boolean;
+    repeatType?: RepeatType;
+    repeatInterval?: number;
+    repeatEndDate?: string;
+  }
+) {
   const [title, setTitle] = useState(initial?.title ?? '');
   const [date, setDate] = useState(initial?.date ?? '');
   const [startTime, setStartTime] = useState(initial?.startTime ?? '');
@@ -24,14 +33,14 @@ function useAddEventState(initial?: Partial<Event>) {
   const [description, setDescription] = useState(initial?.description ?? '');
   const [location, setLocation] = useState(initial?.location ?? '');
   const [category, setCategory] = useState(initial?.category ?? '업무');
-  const [isRepeating, setIsRepeating] = useState(false);
-  const [repeatType, setRepeatType] = useState<RepeatType>('none');
-  const [repeatInterval, setRepeatInterval] = useState(1);
-  const [repeatEndDate, setRepeatEndDate] = useState('');
+  const [isRepeating, setIsRepeating] = useState(repeatInitial?.isRepeating ?? false);
+  const [repeatType, setRepeatType] = useState<RepeatType>(repeatInitial?.repeatType ?? 'none');
+  const [repeatInterval, setRepeatInterval] = useState(repeatInitial?.repeatInterval ?? 1);
+  const [repeatEndDate, setRepeatEndDate] = useState(repeatInitial?.repeatEndDate ?? '');
   const [notificationTime, setNotificationTime] = useState(10);
   const [startTimeError, setStartTimeError] = useState<string | null>(null);
   const [endTimeError, setEndTimeError] = useState<string | null>(null);
-  const [editingEvent, setEditingEvent] = useState<Event | null>(null);
+  const [editingEvent] = useState<Event | null>(null);
 
   const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const v = e.target.value;
@@ -50,7 +59,6 @@ function useAddEventState(initial?: Partial<Event>) {
 
   const addOrUpdateEvent = () => {
     // 데모용: 현재 상태를 콘솔로 출력
-    // eslint-disable-next-line no-console
     console.log({
       title,
       date,
@@ -101,14 +109,15 @@ function useAddEventState(initial?: Partial<Event>) {
 }
 
 export const Default: Story = {
-  render: () => {
+  render: function DefaultRender() {
     const state = useAddEventState();
     return <AddEvent {...state} />;
   },
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 export const WithInitialValues: Story = {
-  render: () => {
+  render: function WithInitialValuesRender() {
     const state = useAddEventState({
       title: '팀 회의',
       date: '2025-11-15',
@@ -120,22 +129,36 @@ export const WithInitialValues: Story = {
     });
     return <AddEvent {...state} />;
   },
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 export const DailyRepeat: Story = {
-  render: () => {
-    const state = useAddEventState();
-    // 초기 반복 상태 구성
-    state.setIsRepeating(true);
-    state.setRepeatType('daily');
-    state.setRepeatInterval(1);
-    state.setRepeatEndDate('2025-11-30');
+  render: function DailyRepeatRender() {
+    const state = useAddEventState(
+      {
+        title: '매일 반복 회의',
+        date: '2025-11-15',
+        startTime: '09:00',
+        endTime: '10:00',
+        description: '매일 반복되는 스탠드업 미팅',
+        location: '회의실 A',
+        category: '업무',
+      },
+      {
+        isRepeating: true,
+        repeatType: 'daily',
+        repeatInterval: 1,
+        repeatEndDate: '2025-11-30',
+      }
+    );
+
     return <AddEvent {...state} />;
   },
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;
 
 export const EditingMode: Story = {
-  render: () => {
+  render: function EditingModeRender() {
     const state = useAddEventState({
       title: '편집 중 일정',
       date: '2025-11-16',
@@ -164,4 +187,5 @@ export const EditingMode: Story = {
 
     return <AddEvent {...state} />;
   },
-};
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+} as any;

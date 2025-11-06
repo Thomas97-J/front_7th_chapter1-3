@@ -498,3 +498,89 @@ it('월간 뷰 선택 후 해당 주에 반복 일정이 존재한다면 해당 
   const eventList = within(screen.getByTestId('event-list'));
   expect(eventList.getAllByText('새 회의')).toHaveLength(2);
 });
+
+it('주간 뷰에서 다음 달로 넘어가는 주의 일정이 검색 목록에 올바르게 표시된다', async () => {
+  // 10월 말 근처 날짜로 설정 (2025-10-29, 수요일)
+  // 이 날짜의 주는 10월 27일(일) ~ 11월 2일(토)가 됨
+  vi.setSystemTime(new Date('2025-10-29'));
+
+  setupMockHandlerCreation([
+    {
+      id: '1',
+      title: '다음 달 회의',
+      date: '2025-11-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '다음 달 회의입니다.',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+  ]);
+
+  const { user } = setup(<App />);
+
+  // 일정 로딩 완료 대기
+  await screen.findByText('일정 로딩 완료!');
+
+  // 주별 뷰 선택
+  await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
+  await user.click(screen.getByRole('option', { name: 'week-option' }));
+
+  // 검색 목록에서 다음 달 일정이 표시되는지 확인
+  const eventList = within(screen.getByTestId('event-list'));
+  expect(eventList.getByText('다음 달 회의')).toBeInTheDocument();
+});
+
+it('주간 뷰에서 다음 달로 넘어가는 주의 일정이 검색어로 검색된다', async () => {
+  // 10월 말 근처 날짜로 설정 (2025-10-29, 수요일)
+  // 이 날짜의 주는 10월 27일(일) ~ 11월 2일(토)가 됨
+  vi.setSystemTime(new Date('2025-10-29'));
+
+  setupMockHandlerCreation([
+    {
+      id: '1',
+      title: '다음 달 회의',
+      date: '2025-11-01',
+      startTime: '09:00',
+      endTime: '10:00',
+      description: '다음 달 회의입니다.',
+      location: '회의실 A',
+      category: '업무',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+    {
+      id: '2',
+      title: '다른 일정',
+      date: '2025-10-15',
+      startTime: '14:00',
+      endTime: '15:00',
+      description: '다른 일정입니다.',
+      location: '회의실 B',
+      category: '개인',
+      repeat: { type: 'none', interval: 0 },
+      notificationTime: 10,
+    },
+  ]);
+
+  const { user } = setup(<App />);
+
+  // 일정 로딩 완료 대기
+  await screen.findByText('일정 로딩 완료!');
+
+  // 주별 뷰 선택
+  await user.click(within(screen.getByLabelText('뷰 타입 선택')).getByRole('combobox'));
+  await user.click(screen.getByRole('option', { name: 'week-option' }));
+
+  // 검색어 입력 (다음 달 회의 검색)
+  const searchInput = screen.getByPlaceholderText('검색어를 입력하세요');
+  await user.type(searchInput, '다음 달');
+
+  // 검색 결과에서 다음 달 일정이 표시되는지 확인
+  const eventList = within(screen.getByTestId('event-list'));
+  expect(eventList.getByText('다음 달 회의')).toBeInTheDocument();
+  // 다른 일정은 검색 결과에서 제외되어야 함
+  expect(eventList.queryByText('다른 일정')).not.toBeInTheDocument();
+});
