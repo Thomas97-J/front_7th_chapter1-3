@@ -17,19 +17,17 @@ const config: StorybookConfig = {
     options: {},
   },
   async viteFinal(config) {
-    // 기존 vite 설정과 병합
-    return mergeConfig(config, {
-      ...viteConfig,
+    const { test, ...viteConfigWithoutTest } = viteConfig;
+
+    const merged = mergeConfig(config, {
+      ...viteConfigWithoutTest,
       plugins: [react()],
-      server: {
-        proxy: {
-          '/api': {
-            target: 'http://localhost:3000',
-            changeOrigin: true,
-          },
-        },
-      },
     });
+
+    // react-refresh 중복 제거
+    merged.plugins = merged.plugins?.filter((p) => !p?.name?.includes('react-refresh'));
+
+    return merged;
   },
 };
 

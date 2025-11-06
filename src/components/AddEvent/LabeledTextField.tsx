@@ -9,6 +9,7 @@ interface LabeledTextFieldProps {
   type?: React.InputHTMLAttributes<unknown>['type'];
   size?: 'small' | 'medium';
   inputProps?: React.InputHTMLAttributes<HTMLInputElement>;
+  labelId?: string; // CategorySelect 스타일과 동일하게 labelId 허용
 }
 
 export default function LabeledTextField({
@@ -19,10 +20,14 @@ export default function LabeledTextField({
   type,
   size = 'small',
   inputProps,
+  labelId,
 }: LabeledTextFieldProps) {
+  const computedLabelId = labelId ?? `${id}-label`;
   return (
     <FormControl fullWidth>
-      <FormLabel htmlFor={id}>{label}</FormLabel>
+      <FormLabel id={computedLabelId} htmlFor={id}>
+        {label}
+      </FormLabel>
       <TextField
         id={id}
         size={size}
