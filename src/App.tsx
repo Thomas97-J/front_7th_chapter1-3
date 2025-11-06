@@ -6,9 +6,11 @@ import AddEvent from './components/AddEvent';
 import EventDialog from './components/EventDialog';
 import Notifications from './components/Notifications';
 import RecurringEventDialog from './components/RecurringEventDialog.tsx';
+import RecurringEventDragWarning from './components/RecurringEventDragWarning';
 import SearchEvent from './components/SearchEvent';
 import ViewEvent from './components/ViewEvent';
 import { useCalendarView } from './hooks/useCalendarView.ts';
+import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
 import { useNotifications } from './hooks/useNotifications.ts';
@@ -51,10 +53,8 @@ function App() {
     editEvent,
   } = useEventForm();
 
-  const { events, saveEvent, deleteEvent, createRepeatEvent, fetchEvents } = useEventOperations(
-    Boolean(editingEvent),
-    () => setEditingEvent(null)
-  );
+  const { events, saveEvent, deleteEvent, createRepeatEvent, fetchEvents, moveEvent } =
+    useEventOperations(Boolean(editingEvent), () => setEditingEvent(null));
 
   const { handleRecurringEdit, handleRecurringDelete } = useRecurringEventOperations(
     events,
@@ -75,8 +75,15 @@ function App() {
   const [pendingRecurringDelete, setPendingRecurringDelete] = useState<Event | null>(null);
   const [recurringEditMode, setRecurringEditMode] = useState<boolean | null>(null); // true = single, false = all
   const [recurringDialogMode, setRecurringDialogMode] = useState<'edit' | 'delete'>('edit');
+  const [isRecurringDragWarningOpen, setIsRecurringDragWarningOpen] = useState(false);
 
   const { enqueueSnackbar } = useSnackbar();
+
+  const { dragState, handleDragStart, handleDragEnd, handleDrop, handleDragOver } = useDragAndDrop(
+    events,
+    moveEvent,
+    () => setIsRecurringDragWarningOpen(true)
+  );
 
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
     if (recurringDialogMode === 'edit' && pendingRecurringEdit) {
@@ -243,6 +250,11 @@ function App() {
           filteredEvents={filteredEvents}
           notifiedEvents={notifiedEvents}
           holidays={holidays}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+          onDrop={handleDrop}
+          onDragOver={handleDragOver}
+          isDragging={dragState.isDragging}
         />
 
         <SearchEvent
@@ -290,6 +302,11 @@ function App() {
         onConfirm={handleRecurringConfirm}
         event={recurringDialogMode === 'edit' ? pendingRecurringEdit : pendingRecurringDelete}
         mode={recurringDialogMode}
+      />
+
+      <RecurringEventDragWarning
+        open={isRecurringDragWarningOpen}
+        onClose={() => setIsRecurringDragWarningOpen(false)}
       />
 
       {notifications.length > 0 && (

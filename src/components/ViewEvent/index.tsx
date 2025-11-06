@@ -71,6 +71,11 @@ interface ViewEventProps {
   filteredEvents: Event[];
   notifiedEvents: string[];
   holidays: Record<string, string>;
+  onDragStart?: (event: Event) => void;
+  onDragEnd?: () => void;
+  onDrop?: (date: string) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  isDragging?: boolean;
 }
 
 function ViewEvent({
@@ -81,6 +86,11 @@ function ViewEvent({
   filteredEvents,
   notifiedEvents,
   holidays,
+  onDragStart,
+  onDragEnd,
+  onDrop,
+  onDragOver,
+  isDragging = false,
 }: ViewEventProps) {
   const renderWeekView = () => {
     const weekDates = getWeekDates(currentDate);
@@ -100,63 +110,81 @@ function ViewEvent({
             </TableHead>
             <TableBody>
               <TableRow>
-                {weekDates.map((date) => (
-                  <TableCell
-                    key={date.toISOString()}
-                    sx={{
-                      height: '120px',
-                      verticalAlign: 'top',
-                      width: '14.28%',
-                      padding: 1,
-                      border: '1px solid #e0e0e0',
-                      overflow: 'hidden',
-                    }}
-                  >
-                    <Typography variant="body2" fontWeight="bold">
-                      {date.getDate()}
-                    </Typography>
-                    {filteredEvents
-                      .filter(
-                        (event) => new Date(event.date).toDateString() === date.toDateString()
-                      )
-                      .map((event) => {
-                        const isNotified = notifiedEvents.includes(event.id);
-                        const isRepeating = event.repeat.type !== 'none';
+                {weekDates.map((date) => {
+                  const dateString = formatDate(currentDate, date.getDate());
+                  return (
+                    <TableCell
+                      key={date.toISOString()}
+                      sx={{
+                        height: '120px',
+                        verticalAlign: 'top',
+                        width: '14.28%',
+                        padding: 1,
+                        border: '1px solid #e0e0e0',
+                        overflow: 'hidden',
+                        backgroundColor: isDragging ? '#f0f0f0' : 'transparent',
+                        transition: 'background-color 0.2s',
+                      }}
+                      onDragOver={onDragOver}
+                      onDrop={() => onDrop?.(dateString)}
+                    >
+                      <Typography variant="body2" fontWeight="bold">
+                        {date.getDate()}
+                      </Typography>
+                      {filteredEvents
+                        .filter(
+                          (event) => new Date(event.date).toDateString() === date.toDateString()
+                        )
+                        .map((event) => {
+                          const isNotified = notifiedEvents.includes(event.id);
+                          const isRepeating = event.repeat.type !== 'none';
 
-                        return (
-                          <Box
-                            key={event.id}
-                            sx={{
-                              ...eventBoxStyles.common,
-                              ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
-                            }}
-                          >
-                            <Stack direction="row" spacing={1} alignItems="center">
-                              {isNotified && <Notifications fontSize="small" />}
-                              {isRepeating && (
-                                <Tooltip
-                                  title={`${event.repeat.interval}${getRepeatTypeLabel(
-                                    event.repeat.type
-                                  )}마다 반복${
-                                    event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
-                                  }`}
+                          return (
+                            <Box
+                              key={event.id}
+                              draggable
+                              onDragStart={(e) => {
+                                e.stopPropagation();
+                                onDragStart?.(event);
+                              }}
+                              onDragEnd={onDragEnd}
+                              sx={{
+                                ...eventBoxStyles.common,
+                                ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
+                                cursor: isRepeating ? 'not-allowed' : 'grab',
+                                '&:active': {
+                                  cursor: isRepeating ? 'not-allowed' : 'grabbing',
+                                },
+                                opacity: isDragging ? 0.5 : 1,
+                              }}
+                            >
+                              <Stack direction="row" spacing={1} alignItems="center">
+                                {isNotified && <Notifications fontSize="small" />}
+                                {isRepeating && (
+                                  <Tooltip
+                                    title={`${event.repeat.interval}${getRepeatTypeLabel(
+                                      event.repeat.type
+                                    )}마다 반복${
+                                      event.repeat.endDate ? ` (종료: ${event.repeat.endDate})` : ''
+                                    }`}
+                                  >
+                                    <Repeat fontSize="small" />
+                                  </Tooltip>
+                                )}
+                                <Typography
+                                  variant="caption"
+                                  noWrap
+                                  sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
                                 >
-                                  <Repeat fontSize="small" />
-                                </Tooltip>
-                              )}
-                              <Typography
-                                variant="caption"
-                                noWrap
-                                sx={{ fontSize: '0.75rem', lineHeight: 1.2 }}
-                              >
-                                {event.title}
-                              </Typography>
-                            </Stack>
-                          </Box>
-                        );
-                      })}
-                  </TableCell>
-                ))}
+                                  {event.title}
+                                </Typography>
+                              </Stack>
+                            </Box>
+                          );
+                        })}
+                    </TableCell>
+                  );
+                })}
               </TableRow>
             </TableBody>
           </Table>
@@ -200,7 +228,11 @@ function ViewEvent({
                           border: '1px solid #e0e0e0',
                           overflow: 'hidden',
                           position: 'relative',
+                          backgroundColor: isDragging && day ? '#f0f0f0' : 'transparent',
+                          transition: 'background-color 0.2s',
                         }}
+                        onDragOver={day ? onDragOver : undefined}
+                        onDrop={day ? () => onDrop?.(dateString) : undefined}
                       >
                         {day && (
                           <>
@@ -219,6 +251,12 @@ function ViewEvent({
                               return (
                                 <Box
                                   key={event.id}
+                                  draggable
+                                  onDragStart={(e) => {
+                                    e.stopPropagation();
+                                    onDragStart?.(event);
+                                  }}
+                                  onDragEnd={onDragEnd}
                                   sx={{
                                     p: 0.5,
                                     my: 0.5,
@@ -229,6 +267,11 @@ function ViewEvent({
                                     minHeight: '18px',
                                     width: '100%',
                                     overflow: 'hidden',
+                                    cursor: isRepeating ? 'not-allowed' : 'grab',
+                                    '&:active': {
+                                      cursor: isRepeating ? 'not-allowed' : 'grabbing',
+                                    },
+                                    opacity: isDragging ? 0.5 : 1,
                                   }}
                                 >
                                   <Stack direction="row" spacing={1} alignItems="center">
