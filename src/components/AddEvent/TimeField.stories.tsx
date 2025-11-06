@@ -26,13 +26,7 @@ export const Playground: Story = {
   },
   render: (args) => {
     const [value, setValue] = useState('09:00');
-    return (
-      <TimeField
-        {...args}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-      />
-    );
+    return <TimeField {...args} value={value} onChange={(e) => setValue(e.target.value)} />;
   },
 };
 
@@ -44,13 +38,7 @@ export const WithError: Story = {
   },
   render: (args) => {
     const [value, setValue] = useState('08:00');
-    return (
-      <TimeField
-        {...args}
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-      />
-    );
+    return <TimeField {...args} value={value} onChange={(e) => setValue(e.target.value)} />;
   },
 };
 

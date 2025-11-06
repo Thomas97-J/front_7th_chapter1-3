@@ -55,7 +55,10 @@ export const ManyOptions: Story = {
   args: {
     id: 'notification',
     label: '알림 설정',
-    options: Array.from({ length: 12 }, (_, i) => ({ value: (i + 1) * 5, label: `${(i + 1) * 5}분 전` })),
+    options: Array.from({ length: 12 }, (_, i) => ({
+      value: (i + 1) * 5,
+      label: `${(i + 1) * 5}분 전`,
+    })),
   },
   render: (args) => {
     const [value, setValue] = useState<number>((args.options as { value: number }[])[0].value);
