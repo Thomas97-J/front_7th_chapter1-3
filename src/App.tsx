@@ -10,6 +10,7 @@ import RecurringEventDragWarning from './components/RecurringEventDragWarning';
 import SearchEvent from './components/SearchEvent';
 import ViewEvent from './components/ViewEvent';
 import { useCalendarView } from './hooks/useCalendarView.ts';
+import { useDateClick } from './hooks/useDateClick';
 import { useDragAndDrop } from './hooks/useDragAndDrop';
 import { useEventForm } from './hooks/useEventForm.ts';
 import { useEventOperations } from './hooks/useEventOperations.ts';
@@ -85,6 +86,9 @@ function App() {
     () => setIsRecurringDragWarningOpen(true)
   );
 
+  // 날짜 클릭 훅 - 날짜만 입력
+  const { handleDateClick } = useDateClick(setDate);
+
   const handleRecurringConfirm = async (editSingleOnly: boolean) => {
     if (recurringDialogMode === 'edit' && pendingRecurringEdit) {
       // 편집 모드 저장하고 편집 폼으로 이동
@@ -111,6 +115,7 @@ function App() {
   };
 
   const handleEditEvent = (event: Event) => {
+    // 수정 모드로 전환 시 클릭 모드 초기화
     if (isRecurringEvent(event)) {
       // Show recurring edit dialog
       setPendingRecurringEdit(event);
@@ -255,6 +260,7 @@ function App() {
           onDrop={handleDrop}
           onDragOver={handleDragOver}
           isDragging={dragState.isDragging}
+          onDateClick={handleDateClick}
         />
 
         <SearchEvent

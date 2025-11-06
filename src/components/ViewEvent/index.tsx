@@ -14,6 +14,7 @@ import {
   Tooltip,
   Typography,
 } from '@mui/material';
+import React from 'react';
 
 import { Event, RepeatType } from '../../types';
 import {
@@ -76,6 +77,7 @@ interface ViewEventProps {
   onDrop?: (date: string) => void;
   onDragOver?: (e: React.DragEvent) => void;
   isDragging?: boolean;
+  onDateClick?: (dateString: string) => void;
 }
 
 function ViewEvent({
@@ -91,7 +93,27 @@ function ViewEvent({
   onDrop,
   onDragOver,
   isDragging = false,
+  onDateClick,
 }: ViewEventProps) {
+  const getDateCellStyles = (hasDate: boolean) => ({
+    height: '120px',
+    verticalAlign: 'top',
+    width: '14.28%',
+    padding: 1,
+    border: '1px solid #e0e0e0',
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: isDragging && hasDate ? '#f0f0f0' : 'transparent',
+    transition: 'background-color 0.2s',
+    cursor: hasDate && onDateClick ? 'pointer' : 'default',
+    '&:hover':
+      hasDate && onDateClick
+        ? {
+            backgroundColor: '#f5f5f5',
+          }
+        : {},
+  });
+
   const renderWeekView = () => {
     const weekDates = getWeekDates(currentDate);
     return (
@@ -115,18 +137,10 @@ function ViewEvent({
                   return (
                     <TableCell
                       key={date.toISOString()}
-                      sx={{
-                        height: '120px',
-                        verticalAlign: 'top',
-                        width: '14.28%',
-                        padding: 1,
-                        border: '1px solid #e0e0e0',
-                        overflow: 'hidden',
-                        backgroundColor: isDragging ? '#f0f0f0' : 'transparent',
-                        transition: 'background-color 0.2s',
-                      }}
+                      sx={getDateCellStyles(true)}
                       onDragOver={onDragOver}
                       onDrop={() => onDrop?.(dateString)}
+                      onClick={() => onDateClick?.(dateString)}
                     >
                       <Typography variant="body2" fontWeight="bold">
                         {date.getDate()}
@@ -148,6 +162,7 @@ function ViewEvent({
                                 onDragStart?.(event);
                               }}
                               onDragEnd={onDragEnd}
+                              onClick={(e) => e.stopPropagation()}
                               sx={{
                                 ...eventBoxStyles.common,
                                 ...(isNotified ? eventBoxStyles.notified : eventBoxStyles.normal),
@@ -220,19 +235,10 @@ function ViewEvent({
                     return (
                       <TableCell
                         key={dayIndex}
-                        sx={{
-                          height: '120px',
-                          verticalAlign: 'top',
-                          width: '14.28%',
-                          padding: 1,
-                          border: '1px solid #e0e0e0',
-                          overflow: 'hidden',
-                          position: 'relative',
-                          backgroundColor: isDragging && day ? '#f0f0f0' : 'transparent',
-                          transition: 'background-color 0.2s',
-                        }}
+                        sx={getDateCellStyles(!!day)}
                         onDragOver={day ? onDragOver : undefined}
                         onDrop={day ? () => onDrop?.(dateString) : undefined}
+                        onClick={day ? () => onDateClick?.(dateString) : undefined}
                       >
                         {day && (
                           <>
@@ -257,6 +263,7 @@ function ViewEvent({
                                     onDragStart?.(event);
                                   }}
                                   onDragEnd={onDragEnd}
+                                  onClick={(e) => e.stopPropagation()}
                                   sx={{
                                     p: 0.5,
                                     my: 0.5,
