@@ -55,7 +55,7 @@ test.describe('일정 충돌 감지', () => {
     await page.getByTestId('event-submit-button').click();
 
     // 충돌 경고 다이얼로그에서 계속 진행
-    await page.getByRole('button', { name: '계속' }).click();
+    await page.getByRole('button', { name: '계속 진행' }).click();
 
     await expect(page.getByText('일정이 추가되었습니다')).toBeVisible();
   });

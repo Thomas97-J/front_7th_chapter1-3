@@ -1,11 +1,8 @@
 import { test, expect } from '@playwright/test';
 
-import { continueIfOverlap } from './support/test-utils';
+import { continueIfOverlap, uniqueId } from './support/test-utils';
 
 test.describe('일정 검색', () => {
-  // 각 테스트마다 고유한 ID 생성
-  const uniqueId = () => Math.random().toString(36).substring(2, 9);
-
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');

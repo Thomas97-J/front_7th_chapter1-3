@@ -1,4 +1,8 @@
 import { Page, expect } from '@playwright/test';
+
+/** 각 테스트마다 고유한 ID 생성 */
+export const uniqueId = () => Math.random().toString(36).substring(2, 9);
+
 export async function continueIfOverlap(page: Page) {
   const dialog = page.getByRole('dialog', { name: '일정 겹침 경고' });
   if (await dialog.isVisible().catch(() => false)) {
